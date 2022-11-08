@@ -1,2 +1,30 @@
 # Pedido-Venda-Delphi
 Pedido de venda em Delphi e Mysql
+
+### Projeto de Pedido de vendas 
+
+**Linguagem:** Delphi 10.2 - Tokyo.
+
+**Banco de dados:** Mysql 5.7.36 (32bits).
+
+### Estrutura e diretórios do projeto
+
+**./SQL:** Estrutura da base de dados - arquivos com criação e população de tabelas.
+
+**./Fontes:** Todos os recursos necessários do projeto.
+
+**./Fontes/dcu:** Arquivos de unidades compiladas. 
+
+**./Fontes/bin:** Arquivos binários (exes, dlls, etc..).
+
+**./Fontes/src:** Arquivos do codigo fonte do projeto. 
+
+**./Fontes/src/Controller:** Arquivos de declarações de classes. 
+
+**./Fontes/src/Definições:** Arquivos de declarações de tipos e constantes. 
+
+**./Fontes/src/Interfaces:** Arquivos de declarações de interfaces.
+
+**./Fontes/src/View:** Arquivos de formulários - Camada visual.
+
+**./Fontes/src/Model:** Arquivos de dados e regras de negócio - Camada Modelo.
