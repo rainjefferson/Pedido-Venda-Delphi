@@ -57,7 +57,7 @@ var
 implementation
 
 uses
-  ucDadosConexaoBase, ucDadosConexaoUtil, System.IniFiles, udConsts_Geral, IWSystem;
+  ucDadosConexaoBase, ucDadosConexaoUtil, System.IniFiles, udConsts_Geral{, IWSystem};
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
@@ -68,7 +68,9 @@ var
   DadosBase: TDataConnect;
   ini: TIniFile;
   db: TDB;
+  gsAppPath: String;
 begin
+  gsAppPath := ExtractFilePath(Application.ExeName);
   if (not FileExists(gsAppPath + _NOME_INI)) then
   begin
      Application.MessageBox(PWideChar('Não é possível conectar a base de dados!' + sLinebreak +
