@@ -28,9 +28,9 @@ type
     Label3: TLabel;
     Label4: TLabel;
     dsoPedidoVendaItens: TDataSource;
-    dbedtCodigoProduto: TDBEdit;
-    dbedtQuantidade: TDBEdit;
-    dbedtValorUnitario: TDBEdit;
+    edtCodigoProduto: TEdit;
+    edtQuantidade: TEdit;
+    edtValorUnitario: TEdit;
     Label5: TLabel;
     Label6: TLabel;
   private

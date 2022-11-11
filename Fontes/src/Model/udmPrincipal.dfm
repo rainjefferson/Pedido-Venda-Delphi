@@ -15,8 +15,8 @@ object dtmPrincipal: TdtmPrincipal
   end
   object FDGUIxWaitCursor1: TFDGUIxWaitCursor
     Provider = 'Forms'
-    Left = 336
-    Top = 40
+    Left = 448
+    Top = 24
   end
   object cdsPedidos: TClientDataSet
     Aggregates = <>
@@ -155,8 +155,8 @@ object dtmPrincipal: TdtmPrincipal
       end>
   end
   object FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink
-    Left = 200
-    Top = 32
+    Left = 336
+    Top = 24
   end
   object qryClientes: TFDQuery
     Connection = conPrincipal
@@ -268,5 +268,10 @@ object dtmPrincipal: TdtmPrincipal
         Name = 'NUMERO_PEDIDO'
         ParamType = ptInput
       end>
+  end
+  object tranPrincipal: TFDTransaction
+    Connection = conPrincipal
+    Left = 136
+    Top = 32
   end
 end

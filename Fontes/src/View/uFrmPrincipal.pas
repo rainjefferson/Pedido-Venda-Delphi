@@ -32,7 +32,6 @@ uses
 
 {$R *.dfm}
 
-
 { TFrmPrincipalVendas }
 
 procedure TFrmPrincipalVendas.btnPedidoVendaClick(Sender: TObject);

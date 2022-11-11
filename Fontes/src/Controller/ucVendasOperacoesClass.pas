@@ -41,6 +41,9 @@ type
     procedure AtualizarDadosAoEncerrar(DataSet: TDataSet);
     procedure AtualizarStatusBotoes;
     procedure AoPressionarTeclaGrade(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure LimparControlesProdutoInserir;
+    procedure ExcluirItemGrade;
+    procedure EditarItemGrade;
   public
     procedure Exibir(ControlContainer: TWinControl);
     procedure Ocultar;
@@ -56,6 +59,9 @@ type
   end;
 
 implementation
+
+uses
+  uUtil;
 
 { TVendasOperacoes }
 
@@ -87,8 +93,7 @@ begin
       dtmPrincipal.cdsPedidos.Edit;
 
     dtmPrincipal.cdsPedidos.FieldByName('Data_Emiss').AsDateTime := Now;
-    dtmPrincipal.cdsPedidos.FieldByName('Valor_Total').AsFloat :=
-      dtmPrincipal.cdsItensPedidosTotal_Pedido.Value;
+    dtmPrincipal.cdsPedidos.FieldByName('Valor_Total').AsFloat := dtmPrincipal.cdsItensPedidosTotal_Pedido.Value;
 
     if dtmPrincipal.cdsItensPedidos.State in dsEditModes then
       dtmPrincipal.cdsItensPedidos.Post;
@@ -97,10 +102,11 @@ begin
       dtmPrincipal.cdsPedidos.Post;
 
     try
-      dtmPrincipal.conPrincipal.StartTransaction;
+      dtmPrincipal.tranPrincipal.StartTransaction;
+
       dtmPrincipal.cdsPedidos.ApplyUpdates(0);
       dtmPrincipal.cdsItensPedidos.ApplyUpdates(0);
-      dtmPrincipal.conPrincipal.Commit;
+      dtmPrincipal.tranPrincipal.Commit;
 
       dtmPrincipal.cdsPedidos.Close;
       dtmPrincipal.cdsItensPedidos.Close;
@@ -111,8 +117,8 @@ begin
       dtmPrincipal.cdsItensPedidos.Open;;
 
       FFramePedidosVenda.edtNomeCliente.Text := '';
-      if FFramePedidosVenda.dbedtCodigoCliente.CanFocus then
-        FFramePedidosVenda.dbedtCodigoCliente.SetFocus;
+
+      TUtil.SetarFocoControle(FFramePedidosVenda.dbedtCodigoCliente);
 
       FAlterandoPedido := False;
       Application.MessageBox('Pedido gravado com sucesso!', 'Informação', 0);
@@ -120,7 +126,7 @@ begin
       on E: Exception do
       begin
         Application.MessageBox(PWideChar('Erro ao gravar pedido: ' + E.Message), 'Erro', 0);
-        dtmPrincipal.conPrincipal.Rollback;
+        dtmPrincipal.tranPrincipal.Rollback;
       end;
     end;
   end;
@@ -132,18 +138,25 @@ begin
   if StrToIntDef(FFramePedidosVenda.dbedtCodigoCliente.Text, 0) = 0 then
   begin
     Application.MessageBox('Necessário informar o cliente no pedido!', 'Informação', 0);
-    if FFramePedidosVenda.dbedtCodigoCliente.CanFocus then
-      FFramePedidosVenda.dbedtCodigoCliente.SetFocus;
+
+    TUtil.SetarFocoControle(FFramePedidosVenda.dbedtCodigoCliente);
   end
   else
   if dtmPrincipal.cdsItensPedidos.IsEmpty then
   begin
     Application.MessageBox('Necessário incluir ao menos um produto no pedido!', 'Informação', 0);
-    if FFramePedidosVenda.dbedtCodigoProduto.CanFocus then
-      FFramePedidosVenda.dbedtCodigoProduto.SetFocus;
+
+    TUtil.SetarFocoControle(FFramePedidosVenda.edtCodigoProduto);
   end
   else
     result := True;
+end;
+
+procedure TVendasOperacoesPedidosVenda.LimparControlesProdutoInserir;
+begin
+  FFramePedidosVenda.edtCodigoProduto.Clear;
+  FFramePedidosVenda.edtQuantidade.Clear;
+  FFramePedidosVenda.edtValorUnitario.Clear;
 end;
 
 procedure TVendasOperacoesPedidosVenda.AtualizarDadosAoEncerrar(DataSet: TDataSet);
@@ -161,9 +174,12 @@ procedure TVendasOperacoesPedidosVenda.CalcularValorItemInterno;
 begin
   if not (dtmPrincipal.cdsItensPedidos.State in dsEditModes) then
     dtmPrincipal.cdsItensPedidos.Edit;
-  dtmPrincipal.cdsItensPedidos.FieldByName('Valor_Total').AsFloat :=
-    (StrToFloatDef(FFramePedidosVenda.dbedtQuantidade.Text, 1) *
-     StrToFloatDef(FFramePedidosVenda.dbedtValorUnitario.Text,0));
+
+  dtmPrincipal.cdsItensPedidos.FieldByName('Quantidade').AsFloat := StrToFloatDef(FFramePedidosVenda.edtQuantidade.Text, 1);
+  dtmPrincipal.cdsItensPedidos.FieldByName('Valor_Unitario').AsFloat := StrToFloatDef(FFramePedidosVenda.edtValorUnitario.Text, 0);
+
+  dtmPrincipal.cdsItensPedidos.FieldByName('Valor_Total').AsFloat := (StrToFloatDef(FFramePedidosVenda.edtQuantidade.Text, 1) *
+                                                                      StrToFloatDef(FFramePedidosVenda.edtValorUnitario.Text, 0));
 end;
 
 procedure TVendasOperacoesPedidosVenda.CalcularValorTotalProduto(
@@ -173,14 +189,11 @@ begin
   begin
     CalcularValorItemInterno;
 
+    {Se tag 1, o evento vem da quantidade, senão é valor unitário}
     if TDBEdit(Sender).Tag = 1 then
-    begin
-      if FFramePedidosVenda.dbedtValorUnitario.CanFocus then
-         FFramePedidosVenda.dbedtValorUnitario.SetFocus;
-    end
+      TUtil.SetarFocoControle(FFramePedidosVenda.edtValorUnitario)
     else
-      if FFramePedidosVenda.btnGravarItem.CanFocus then
-        FFramePedidosVenda.btnGravarItem.SetFocus;
+      TUtil.SetarFocoControle(FFramePedidosVenda.btnGravarItem);
   end;
 end;
 
@@ -189,6 +202,7 @@ var
   NrPedido: Integer;
 begin
   NrPedido:= StrToIntDef(InputBox('Cancelar Pedido', 'Número Pedido:', '0'),0);
+
   if NrPedido = 0 then
     Application.MessageBox('O número do pedido precisa ser informado!', 'Aviso', 0)
   else
@@ -212,23 +226,21 @@ begin
     dtmPrincipal.qryProximoPedido.Open;
 
     if not (dtmPrincipal.cdsPedidos.State in dsEditModes) then
-    dtmPrincipal.cdsPedidos.Edit;
+      dtmPrincipal.cdsPedidos.Edit;
 
-    dtmPrincipal.cdsPedidos.FieldByName('Numero_Pedido').AsInteger :=
-      dtmPrincipal.qryProximoPedido.FieldByName('Prox').AsInteger;
-    dtmPrincipal.cdsItensPedidos.FieldByName('Numero_Pedido').AsInteger :=
-      dtmPrincipal.qryProximoPedido.FieldByName('Prox').AsInteger;
+    dtmPrincipal.cdsPedidos.FieldByName('Numero_Pedido').AsInteger := dtmPrincipal.qryProximoPedido.FieldByName('Prox').AsInteger;
+    dtmPrincipal.cdsItensPedidos.FieldByName('Numero_Pedido').AsInteger := dtmPrincipal.qryProximoPedido.FieldByName('Prox').AsInteger;
   end;
 
-  dtmPrincipal.cdsItensPedidos.FieldByName('Numero_Pedido').AsInteger :=
-    dtmPrincipal.cdsPedidos.FieldByName('Numero_Pedido').AsInteger;
+  dtmPrincipal.cdsItensPedidos.FieldByName('Numero_Pedido').AsInteger := dtmPrincipal.cdsPedidos.FieldByName('Numero_Pedido').AsInteger;
 
   if dtmPrincipal.cdsItensPedidos.State in dsEditModes then
     dtmPrincipal.cdsItensPedidos.Post;
-  dtmPrincipal.cdsItensPedidos.Insert;
 
-  if FFramePedidosVenda.dbedtCodigoProduto.CanFocus then
-    FFramePedidosVenda.dbedtCodigoProduto.SetFocus;
+  LimparControlesProdutoInserir;
+
+  FFramePedidosVenda.edtCodigoProduto.Enabled := True;
+  TUtil.SetarFocoControle(FFramePedidosVenda.edtCodigoProduto);
 end;
 
 procedure TVendasOperacoesPedidosVenda.ConsultarCliente(Sender: TObject;
@@ -237,26 +249,20 @@ begin
   if Key = #13 then
   begin
     dtmPrincipal.qryClientes.Close;
-
-    dtmPrincipal.qryClientes.ParamByName('Codigo').AsString :=
-      FFramePedidosVenda.dbedtCodigoCliente.Text;
-
+    dtmPrincipal.qryClientes.ParamByName('Codigo').AsString := FFramePedidosVenda.dbedtCodigoCliente.Text;
     dtmPrincipal.qryClientes.Open;
+
     if not dtmPrincipal.qryClientes.IsEmpty then
     begin
-      FFramePedidosVenda.edtNomeCliente.Text :=
-        dtmPrincipal.qryClientes.FieldByName('Nome').AsString;
+      FFramePedidosVenda.edtNomeCliente.Text := dtmPrincipal.qryClientes.FieldByName('Nome').AsString;
 
-      if FFramePedidosVenda.dbedtCodigoProduto.CanFocus then
-        FFramePedidosVenda.dbedtCodigoProduto.SetFocus;
+      TUtil.SetarFocoControle(FFramePedidosVenda.edtCodigoProduto);
     end
     else
     begin
-      Application.MessageBox(PWideChar('Cliente "' +
-        FFramePedidosVenda.dbedtCodigoCliente.Text + '" não cadastrado!'), '', 0);
+      Application.MessageBox(PWideChar('Cliente "' + FFramePedidosVenda.dbedtCodigoCliente.Text + '" não cadastrado!'), '', 0);
 
-      if FFramePedidosVenda.dbedtCodigoCliente.CanFocus then
-        FFramePedidosVenda.dbedtCodigoCliente.SetFocus;
+      TUtil.SetarFocoControle(FFramePedidosVenda.dbedtCodigoCliente);
     end;
 
     AtualizarStatusBotoes;
@@ -269,6 +275,7 @@ var
   Key: Char;
 begin
   NrPedido:= StrToIntDef(InputBox('Carregar Pedido', 'Número Pedido:', '0'),0);
+
   if NrPedido = 0 then
     Application.MessageBox('O número do pedido precisa ser informado!', 'Aviso', 0)
   else
@@ -297,34 +304,29 @@ begin
   if Key = #13 then
   begin
     dtmPrincipal.qryProdutos.Close;
-
-    dtmPrincipal.qryProdutos.ParamByName('Codigo').AsString :=
-      FFramePedidosVenda.dbedtCodigoProduto.Text;
-
+    dtmPrincipal.qryProdutos.ParamByName('Codigo').AsString := FFramePedidosVenda.edtCodigoProduto.Text;
     dtmPrincipal.qryProdutos.Open;
+
     if not dtmPrincipal.qryProdutos.IsEmpty then
     begin
-      dtmPrincipal.cdsItensPedidos.FieldByName('Codigo_Produto').AsInteger :=
-        dtmPrincipal.qryProdutos.FieldByName('Codigo').AsInteger;
+      if not (dtmPrincipal.cdsItensPedidos.State in dsEditModes) then
+        dtmPrincipal.cdsItensPedidos.Insert;
 
-      dtmPrincipal.cdsItensPedidos.FieldByName('Valor_Unitario').AsFloat :=
-        dtmPrincipal.qryProdutos.FieldByName('Preco_Venda').AsFloat;
-
-      dtmPrincipal.cdsItensPedidos.FieldByName('Descricao').AsString :=
-        dtmPrincipal.qryProdutos.FieldByName('Descricao').AsString;
-
+      dtmPrincipal.cdsItensPedidos.FieldByName('Codigo_Produto').AsInteger := dtmPrincipal.qryProdutos.FieldByName('Codigo').AsInteger;
+      dtmPrincipal.cdsItensPedidos.FieldByName('Valor_Unitario').AsFloat := dtmPrincipal.qryProdutos.FieldByName('Preco_Venda').AsFloat;
+      dtmPrincipal.cdsItensPedidos.FieldByName('Descricao').AsString := dtmPrincipal.qryProdutos.FieldByName('Descricao').AsString;
       dtmPrincipal.cdsItensPedidos.FieldByName('Quantidade').AsFloat := 1;
 
-      if FFramePedidosVenda.dbedtQuantidade.CanFocus then
-        FFramePedidosVenda.dbedtQuantidade.SetFocus;
+      FFramePedidosVenda.edtQuantidade.Text := '1';
+      FFramePedidosVenda.edtValorUnitario.Text := FormatFloat(',#0.00', dtmPrincipal.cdsItensPedidos.FieldByName('Valor_Unitario').AsFloat);
+
+      TUtil.SetarFocoControle(FFramePedidosVenda.edtQuantidade);
     end
     else
     begin
-      Application.MessageBox(PWideChar('Cliente "' +
-        FFramePedidosVenda.dbedtCodigoCliente.Text + '" não cadastrado!'), '', 0);
+      Application.MessageBox(PWideChar('Produto "' + FFramePedidosVenda.edtCodigoProduto.Text + '" não cadastrado!'), '', 0);
 
-      if FFramePedidosVenda.dbedtCodigoCliente.CanFocus then
-        FFramePedidosVenda.dbedtCodigoCliente.SetFocus;
+      TUtil.SetarFocoControle(FFramePedidosVenda.edtCodigoProduto);
     end;
   end;
 end;
@@ -343,16 +345,36 @@ end;
 procedure TVendasOperacoesPedidosVenda.AoPressionarTeclaGrade(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if (Key = VK_DELETE) and (not dtmPrincipal.cdsItensPedidos.IsEmpty) then
-  begin
-    if Application.MessageBox('Confirma exclusão do Item?', 'Pergunta', MB_YESNO) = ID_YES then
+  if dtmPrincipal.cdsItensPedidos.IsEmpty then
+    Exit;
+
+  if (Key = VK_DELETE) then
+    ExcluirItemGrade;
+
+  if (Key = VK_RETURN) then
+    EditarItemGrade;
+end;
+
+procedure TVendasOperacoesPedidosVenda.ExcluirItemGrade;
+begin
+  if Application.MessageBox('Confirma exclusão do Item?', 'Pergunta', MB_YESNO) = ID_YES then
     begin
       dtmPrincipal.cdsItensPedidos.Delete;
-      dtmPrincipal.cdsItensPedidos.Insert;
-      if FFramePedidosVenda.dbedtCodigoProduto.CanFocus then
-        FFramePedidosVenda.dbedtCodigoProduto.SetFocus;
+
+      TUtil.SetarFocoControle(FFramePedidosVenda.edtCodigoProduto);
     end;
-  end;
+end;
+
+procedure TVendasOperacoesPedidosVenda.EditarItemGrade;
+begin
+  FFramePedidosVenda.edtCodigoProduto.Text := dtmPrincipal.cdsItensPedidos.FieldByName('Codigo_Produto').AsString;
+  FFramePedidosVenda.edtValorUnitario.Text := FormatFloat(',#0.00', dtmPrincipal.cdsItensPedidos.FieldByName('Valor_Unitario').AsFloat);
+  FFramePedidosVenda.edtQuantidade.Text := FormatFloat(',#0.00', dtmPrincipal.cdsItensPedidos.FieldByName('Quantidade').AsFloat);
+
+  dtmPrincipal.cdsItensPedidos.Edit;
+
+  FFramePedidosVenda.edtCodigoProduto.Enabled := False;
+  TUtil.SetarFocoControle(FFramePedidosVenda.edtQuantidade);
 end;
 
 procedure TVendasOperacoesPedidosVenda.Exibir(ControlContainer: TWinControl);
@@ -366,8 +388,7 @@ begin
   dtmPrincipal.cdsPedidos.Open;
 
   dtmPrincipal.cdsItensPedidos.Close;
-  dtmPrincipal.cdsItensPedidos.ParamByName('NUMERO_PEDIDO').AsInteger :=
-    dtmPrincipal.cdsPedidos.FieldByName('NUMERO_PEDIDO').AsInteger;
+  dtmPrincipal.cdsItensPedidos.ParamByName('NUMERO_PEDIDO').AsInteger := dtmPrincipal.cdsPedidos.FieldByName('NUMERO_PEDIDO').AsInteger;
   dtmPrincipal.cdsItensPedidos.Open;
 
   FFramePedidosVenda.btnGravarPedido.OnClick := GravarPedido;
@@ -376,9 +397,9 @@ begin
   FFramePedidosVenda.btnGravarItem.OnClick := GravarItemPedido;
 
   FFramePedidosVenda.dbedtCodigoCliente.OnKeyPress := ConsultarCliente;
-  FFramePedidosVenda.dbedtCodigoProduto.OnKeyPress := ConsultarProduto;
-  FFramePedidosVenda.dbedtQuantidade.OnKeyPress := CalcularValorTotalProduto;
-  FFramePedidosVenda.dbedtValorUnitario.OnKeyPress := CalcularValorTotalProduto;
+  FFramePedidosVenda.edtCodigoProduto.OnKeyPress := ConsultarProduto;
+  FFramePedidosVenda.edtQuantidade.OnKeyPress := CalcularValorTotalProduto;
+  FFramePedidosVenda.edtValorUnitario.OnKeyPress := CalcularValorTotalProduto;
 
   FFramePedidosVenda.dbgrdItensPedido.OnKeyDown := AoPressionarTeclaGrade;
 
@@ -386,8 +407,7 @@ begin
   FFramePedidosVenda.Align := TAlign.alClient;
   FFramePedidosVenda.Visible := True;
 
-  if FFramePedidosVenda.dbedtCodigoCliente.CanFocus then
-    FFramePedidosVenda.dbedtCodigoCliente.SetFocus;
+  TUtil.SetarFocoControle(FFramePedidosVenda.dbedtCodigoCliente);
 
   AtualizarStatusBotoes;
 end;

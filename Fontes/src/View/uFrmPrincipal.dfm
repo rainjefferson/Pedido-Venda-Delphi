@@ -2,7 +2,7 @@ object FrmPrincipalVendas: TFrmPrincipalVendas
   Left = 0
   Top = 0
   Caption = 'Sistema de Vendas'
-  ClientHeight = 620
+  ClientHeight = 640
   ClientWidth = 792
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object FrmPrincipalVendas: TFrmPrincipalVendas
     Left = 0
     Top = 57
     Width = 193
-    Height = 563
+    Height = 583
     Align = alLeft
     TabOrder = 0
     object btnPedidoVenda: TSpeedButton
@@ -55,7 +55,7 @@ object FrmPrincipalVendas: TFrmPrincipalVendas
     Left = 193
     Top = 57
     Width = 599
-    Height = 563
+    Height = 583
     Align = alClient
     TabOrder = 1
   end

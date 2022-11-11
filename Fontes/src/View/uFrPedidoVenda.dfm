@@ -229,9 +229,9 @@ object FrPedidoVenda: TFrPedidoVenda
         TabOrder = 0
       end
       object edtNomeCliente: TEdit
-        Left = 135
+        Left = 131
         Top = 29
-        Width = 394
+        Width = 408
         Height = 21
         TabStop = False
         ReadOnly = True
@@ -264,33 +264,27 @@ object FrPedidoVenda: TFrPedidoVenda
         Caption = 'Gravar Item'
         TabOrder = 3
       end
-      object dbedtCodigoProduto: TDBEdit
+      object edtCodigoProduto: TEdit
         Left = 8
         Top = 109
         Width = 105
         Height = 21
-        DataField = 'Codigo_Produto'
-        DataSource = dsoPedidoVendaItens
         TabOrder = 4
       end
-      object dbedtQuantidade: TDBEdit
+      object edtQuantidade: TEdit
         Tag = 1
         Left = 136
         Top = 109
         Width = 105
         Height = 21
-        DataField = 'Quantidade'
-        DataSource = dsoPedidoVendaItens
         TabOrder = 5
       end
-      object dbedtValorUnitario: TDBEdit
+      object edtValorUnitario: TEdit
         Tag = 2
         Left = 262
         Top = 109
         Width = 105
         Height = 21
-        DataField = 'Valor_Unitario'
-        DataSource = dsoPedidoVendaItens
         TabOrder = 6
       end
     end

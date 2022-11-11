@@ -42,10 +42,10 @@ type
     cdsItensPedidosTotal_Pedido: TAggregateField;
     qryExcluirPedido: TFDQuery;
     qryExcluirItensPedido: TFDQuery;
+    tranPrincipal: TFDTransaction;
     procedure DataModuleCreate(Sender: TObject);
   private
     { Private declarations }
-
     procedure ConectarBancoDados;
   public
     { Public declarations }
@@ -57,7 +57,7 @@ var
 implementation
 
 uses
-  ucDadosConexaoBase, ucDadosConexaoUtil, System.IniFiles, udConsts_Geral{, IWSystem};
+  ucDadosConexaoBase, ucDadosConexaoUtil, System.IniFiles, udConsts_Geral;
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
@@ -73,9 +73,9 @@ begin
   gsAppPath := ExtractFilePath(Application.ExeName);
   if (not FileExists(gsAppPath + _NOME_INI)) then
   begin
-     Application.MessageBox(PWideChar('Não é possível conectar a base de dados!' + sLinebreak +
+    Application.MessageBox(PWideChar('Não é possível conectar a base de dados!' + sLinebreak +
       'Arquivo INI "' + _NOME_INI + '" não encontrado!'), 'Mensagem', MB_OK + MB_ICONWARNING);
-      Exit;
+    Exit;
   end;
 
   DadosBase := TDataConnect.Create;

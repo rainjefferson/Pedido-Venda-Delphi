@@ -147,6 +147,7 @@
         <DCCReference Include="src\Controller\ucDadosConexaoBase.pas"/>
         <DCCReference Include="src\Definições\udConsts_Geral.pas"/>
         <DCCReference Include="src\Controller\ucDadosConexaoUtil.pas"/>
+        <DCCReference Include="src\Comum\uUtil.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

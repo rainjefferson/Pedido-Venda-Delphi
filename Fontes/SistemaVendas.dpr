@@ -10,7 +10,8 @@ uses
   udmPrincipal in 'src\Model\udmPrincipal.pas' {dtmPrincipal: TDataModule},
   ucDadosConexaoBase in 'src\Controller\ucDadosConexaoBase.pas',
   udConsts_Geral in 'src\Definições\udConsts_Geral.pas',
-  ucDadosConexaoUtil in 'src\Controller\ucDadosConexaoUtil.pas';
+  ucDadosConexaoUtil in 'src\Controller\ucDadosConexaoUtil.pas',
+  uUtil in 'src\Comum\uUtil.pas';
 
 {$R *.res}
 
