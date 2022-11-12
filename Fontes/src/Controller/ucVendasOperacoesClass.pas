@@ -384,11 +384,11 @@ end;
 procedure TVendasOperacoesPedidosVenda.ExcluirItemGrade;
 begin
   if Application.MessageBox('Confirma exclusão do Item?', 'Pergunta', MB_YESNO) = ID_YES then
-    begin
-      dtmPrincipal.cdsItensPedidos.Delete;
+  begin
+    dtmPrincipal.cdsItensPedidos.Delete;
 
-      TUtil.SetarFocoControle(FFramePedidosVenda.edtCodigoProduto);
-    end;
+    TUtil.SetarFocoControle(FFramePedidosVenda.edtCodigoProduto);
+  end;
 end;
 
 procedure TVendasOperacoesPedidosVenda.EditarItemGrade;
