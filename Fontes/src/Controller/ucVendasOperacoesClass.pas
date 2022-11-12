@@ -200,19 +200,43 @@ end;
 procedure TVendasOperacoesPedidosVenda.CancelarPedido(Sender: TObject);
 var
   NrPedido: Integer;
+  QtdeItensCancelados: Integer;
+  ItemPlurSing: String;
 begin
-  NrPedido:= StrToIntDef(InputBox('Cancelar Pedido', 'Número Pedido:', '0'),0);
+  NrPedido := StrToIntDef(InputBox('Cancelar Pedido', 'Número Pedido:', '0'),0);
 
   if NrPedido = 0 then
     Application.MessageBox('O número do pedido precisa ser informado!', 'Aviso', 0)
   else
   begin
-    dtmPrincipal.qryExcluirItensPedido.ParamByName('Numero_Pedido').AsInteger := NrPedido;
-    dtmPrincipal.qryExcluirItensPedido.ExecSQL;
-    dtmPrincipal.qryExcluirPedido.ParamByName('Numero_Pedido').AsInteger := NrPedido;
-    dtmPrincipal.qryExcluirPedido.ExecSQL;
+    dtmPrincipal.tranPrincipal.StartTransaction;
+    try
+      dtmPrincipal.qryExcluirItensPedido.ParamByName('Numero_Pedido').AsInteger := NrPedido;
+      dtmPrincipal.qryExcluirItensPedido.ExecSQL;
 
-    Application.MessageBox('O pedido foi cancelado com sucesso!', 'Aviso', 0);
+      dtmPrincipal.qryExcluirPedido.ParamByName('Numero_Pedido').AsInteger := NrPedido;
+      dtmPrincipal.qryExcluirPedido.ExecSQL;
+
+      QtdeItensCancelados := dtmPrincipal.qryExcluirItensPedido.RowsAffected;
+      NrPedido := dtmPrincipal.qryExcluirPedido.RowsAffected;
+
+      dtmPrincipal.tranPrincipal.Commit;
+
+      ItemPlurSing := ' item';
+      if QtdeItensCancelados > 1 then
+        ItemPlurSing := ' itens';
+
+      if NrPedido = 0 then
+        Application.MessageBox(PWideChar('Nenhum pedido foi cancelado!'#13#10'Verifique se informou o número do pedido corretamente ou o pedido já está cancelado.'), 'Aviso', 0)
+      else
+        Application.MessageBox(PWideChar('O pedido com ' + IntToStr(QtdeItensCancelados) + ItemPlurSing + ', foi cancelado com sucesso!'), 'Sucesso', 0);
+    except
+      on E: Exception do
+      begin
+        dtmPrincipal.tranPrincipal.Rollback;
+        Application.MessageBox(PWideChar('Erro ao cancelar o pedido: ' + E.Message), 'Erro', 0);
+      end;
+    end;
   end;
 end;
 
@@ -288,7 +312,9 @@ begin
     dtmPrincipal.cdsItensPedidos.ParamByName('Numero_Pedido').AsInteger := NrPedido;
     dtmPrincipal.cdsItensPedidos.Open;
 
-    if not dtmPrincipal.cdsPedidos.IsEmpty then
+    if dtmPrincipal.cdsPedidos.IsEmpty then
+      Application.MessageBox(PWideChar('O Pedido ' + IntToStr(NrPedido) + ' não foi localizado!'), 'Aviso', 0)
+    else
     begin
       AtualizarStatusBotoes;
       Key := #13;
